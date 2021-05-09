@@ -42,8 +42,8 @@ for i,j in enumerate(js):
     vs[3*i+1]=v_Rep(j,1)
     vs[3*i+2]=v_Rep(j,2)
 
-n=20
-for ind in range(0, len(vs), 3):
+n=25
+""" for ind in range(0, len(vs), 3):
     print("k: {}, j: {}".format(ind, vs[ind].j))
     x,y = np.meshgrid(np.linspace(0,1,n),np.linspace(0,1,n))
 
@@ -59,7 +59,24 @@ for ind in range(0, len(vs), 3):
                 u[i][j], w[i][j], _ = vs[ind+k].comp([x[i][j],y[i][j],0.5])
         M=np.sqrt(u*u+w*w)
         plt.quiver(x,y,u,w,M,cmap=plt.cm.jet)
-    plt.show()
+    plt.show() """
+x,y = np.meshgrid(np.linspace(0,1,n),np.linspace(0,1,n))
+
+u = np.zeros((n,n))
+w = np.zeros((n,n))
+fig = plt.figure("v_2")
+for i in range(n):
+    for j in range(n):
+        u[i][j], w[i][j], _ = vs[2].comp([x[i][j],y[i][j],0.5])
+M=np.sqrt(u*u+w*w)
+plt.quiver(x,y,u,w,M,cmap=plt.cm.jet)
+fig2 = plt.figure("v_14")
+for i in range(n):
+    for j in range(n):
+        u[i][j], w[i][j], _ = vs[14].comp([x[i][j],y[i][j],0.5])
+M=np.sqrt(u*u+w*w)
+plt.quiver(x,y,u,w,M,cmap=plt.cm.jet)
+plt.show()
 
 """ n=10
 x,y,z = np.meshgrid(np.linspace(0,1,n),np.linspace(0,1,n),np.linspace(0,1,n))

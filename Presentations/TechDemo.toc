@@ -1,6 +1,7 @@
 \beamer@sectionintoc {1}{What is Shape Correspondence?}{3}{0}{1}
 \beamer@sectionintoc {2}{Shape Correspondence via Divergence-Free Deformation Field}{4}{0}{2}
-\beamer@sectionintoc {3}{Representing the Deformation Field}{7}{0}{3}
-\beamer@sectionintoc {4}{Computing the Deformation Field}{8}{0}{4}
-\beamer@sectionintoc {5}{Shape Interpolation}{9}{0}{5}
-\beamer@sectionintoc {6}{Project topic: Time-Varying Deformation Field}{11}{0}{6}
+\beamer@sectionintoc {3}{Representing the Deformation Field}{9}{0}{3}
+\beamer@sectionintoc {4}{Computing the Deformation Field}{13}{0}{4}
+\beamer@sectionintoc {5}{Shape Interpolation}{16}{0}{5}
+\beamer@sectionintoc {6}{Project topic: Time-Varying Deformation Field}{18}{0}{6}
+\beamer@sectionintoc {7}{Sources}{19}{0}{7}
