@@ -105,8 +105,8 @@
 \begin{enumerate}
 \item[-]Given two point clouds $X=\{x_1,...,x_n\} \subset \Omega, Y=\{y_1,...,y_n\}\subset \Omega$, find a mapping $f: \Omega \rightarrow \Omega$ s.t. $f(X)$ fits the shape $Y$
 \item[-]Idea: $f$ should imitate real-world transformation from $X$ to $Y$
-\pause
 \item[-] What is natural? Smoothness and continuity!
+\pause
 \item[$\Rightarrow$]  \begin{equation*}
   	\begin{cases}
     \dot{x}(t) = v(x(t)) \\
@@ -149,8 +149,8 @@
 \begin{enumerate}
 \item[-] We can now compute the correspondence given the deformation field
 \item[-]But how to find the best deformation field? First, we need to represent the deformation field in an efficient way
-\pause
 \item[-] Compute a basis $\{v_1,v_2,...\}$ that spans the space of divergence-free deformation fields
+\pause
 \item[] \begin{equation*}
 B_\phi = \left\{\phi: [0,1]^D \rightarrow\mathbb{R}, x \mapsto\prod_{d=1}^D \frac{1}{2}\sin(x_d\pi j_d) \big\vert j \in \mathbb{N}^D\right\}
 \end{equation*}
@@ -181,11 +181,10 @@ B_\phi = \left\{\phi: [0,1]^D \rightarrow\mathbb{R}, x \mapsto\prod_{d=1}^D \fra
 \begin{enumerate}
 \item[-] Remember: $v(x) = \sum_{k=1}^K v_k(x)a_k$
 \item[-] We only have to find the correct $a_k$
-\pause
 \item[-] If we had the $a_k$ we could compute $f$ which maps $\{x_1,...,x_n\}$ to be in the shape of Y
 \item[-] We still need to assign the points $f(x_n)$ to points $y_n$
-\item[-] Idea: Do both at the same time with Expectation Maximization
 \pause
+\item[-] Idea: Do both at the same time with Expectation Maximization
 \end{enumerate}
 \begin{figure}
 \includegraphics[height=4cm]{Pictures/Pipeline.png}
