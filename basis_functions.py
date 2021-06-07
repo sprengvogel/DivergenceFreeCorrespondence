@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import itertools
 from math import ceil
 
+k=1000
+
 class v_Rep:
     def __init__(self,j,ind):
         self.j=j
@@ -30,17 +32,18 @@ def sortFunc(x):
 
 def generateJs(k_max=1000):
     j_len = ceil(k_max/3)
-    js = list(itertools.combinations_with_replacement(range(1,ceil(np.sqrt(j_len))), 3))
+    js = list(itertools.product(range(1,ceil(np.sqrt(j_len))), repeat=3))
     js.sort(key=sortFunc)
     js = js[:j_len]
     return js
 
-js=generateJs(40)
+js=generateJs(k)
 vs=np.empty(3*len(js), dtype=object)
 for i,j in enumerate(js):
     vs[3*i]=v_Rep(j,0)
     vs[3*i+1]=v_Rep(j,1)
     vs[3*i+2]=v_Rep(j,2)
+
 
 n=25
 """ for ind in range(0, len(vs), 3):
@@ -64,18 +67,18 @@ x,y = np.meshgrid(np.linspace(0,1,n),np.linspace(0,1,n))
 
 u = np.zeros((n,n))
 w = np.zeros((n,n))
-fig = plt.figure("v_2")
+fig = plt.figure("v_1001")
 for i in range(n):
     for j in range(n):
-        u[i][j], w[i][j], _ = vs[2].comp([x[i][j],y[i][j],0.5])
+        u[i][j], w[i][j], _ = vs[41].comp([x[i][j],y[i][j],0.5])
 M=np.sqrt(u*u+w*w)
 plt.quiver(x,y,u,w,M,cmap=plt.cm.jet)
-fig2 = plt.figure("v_14")
+""" fig2 = plt.figure("v_14")
 for i in range(n):
     for j in range(n):
         u[i][j], w[i][j], _ = vs[14].comp([x[i][j],y[i][j],0.5])
 M=np.sqrt(u*u+w*w)
-plt.quiver(x,y,u,w,M,cmap=plt.cm.jet)
+plt.quiver(x,y,u,w,M,cmap=plt.cm.jet) """
 plt.show()
 
 """ n=10
