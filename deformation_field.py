@@ -74,10 +74,10 @@ def calc_ds(fn, ym):
 
 if __name__ == "__main__":
 
-    """ n=10
+    """n=10
     x,y,z = np.meshgrid(np.linspace(0,1,n),np.linspace(0,1,n), np.linspace(0,1,n))
     X = np.stack([x,y,z],axis=-1).reshape(n*n*n, 3)
-    cs = np.ones(33)
+    cs = np.ones(3)
     f = getDeformationField(cs, X, js)
     u = f[:,0].reshape((n,n,n))
     v = f[:,1].reshape((n,n,n))
@@ -97,5 +97,5 @@ if __name__ == "__main__":
     u = f[:,0].reshape((n,n))
     v = f[:,1].reshape((n,n))
     uvnorms = np.linalg.norm(f, axis=1)
-    plt.quiver(x,y,u,v,uvnorms,cmap=plt.cm.jet)   
+    plt.quiver(x,y,u,v,uvnorms,cmap=plt.cm.viridis)   
     plt.show()
