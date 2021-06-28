@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 from math import ceil
+from tqdm import tqdm
 
 k=1000
 
@@ -63,14 +64,51 @@ def rungeKutta(dField, T=100):
         xn = xn + h*getDeformationField(dField.cs, dField.js, xn+(h/2)*getDeformationField(dField.cs, dField.js, xn))
     return xn
 
-def EStep(fn, ym, sigmas):
+def EStep(fn, ym, sigmasquare):
     ds = calc_ds(fn, ym)
-    numerator = np.exp(-1/(2*np.square(sigmas))*ds**2)
-    denominator = (2*np.pi*np.square(sigmas))**1.5 + np.sum([np.exp(-1/(2*np.square(sigmas))*np.square(dn)) for dn in ds], axis=0)
-    return numerator/denominator
+    numerator = np.exp(-1/(2*sigmasquare)*ds**2)
+    denominator = (2*np.pi*sigmasquare)**1.5 + np.sum([np.exp(-1/(2*sigmasquare)*np.square(dn)) for dn in ds], axis=0)
+    #Numerator is (n,m), denominator  (m,) and gets broadcasted to (n,m) in product
+    res = numerator/denominator
+    assert res.shape == (fn.shape[0],ym.shape[0])
+    return res
 
 def calc_ds(fn, ym):
-    return np.linalg.norm(ym-fn, axis=1)**2
+    ds = np.zeros((fn.shape[0],ym.shape[0]))
+    for i in range(fn.shape[0]):
+        ds[i,:] = np.linalg.norm(ym-fn[i], axis=1)
+    assert ds.shape == (fn.shape[0],ym.shape[0])
+    return ds
+
+"""
+Calculates diagonal matrix of eigenvalues L
+"""
+def calc_L(js):
+    L = np.diag(np.power((np.pi**2)*np.sum(np.square(js),1),-3/2))
+    assert L.shape == (js.shape[0], js.shape[0])
+    return L
+    
+"""
+Calculates weighted residual vector r with shape(n*d,)
+"""
+def calc_r(W,fn,ym):
+    n = fn.shape[0]
+    r = np.zeros((3*n,))
+    for i in range(n):
+        r[3*i:3*i+3] = np.sum((W[i]*(fn[i]-ym).T),axis=1)
+    assert r.shape == (3*n,)
+    return r
+
+"""
+Calculates WSnake, diagonal matrix of column sums
+"""
+def calc_WSnake(W):
+    sums = np.zeros(3*W.shape[1])
+    for i in range(W.shape[1]):
+        sums[3*i:3*i+3] = np.sum(W[i]) 
+    WSnake = np.diag(sums)
+    assert WSnake.shape == (3*W.shape[0],3*W.shape[0])
+    return WSnake
 
 if __name__ == "__main__":
 
