@@ -50,10 +50,10 @@ plt.show()
 
 js = df.generateJs()
 cs = np.array([.2])
-dField = df.DField(cs,js,vertices)
-fn = df.rungeKutta(dField, T=100)
+dField = df.DField(cs,js)
+fn = df.rungeKutta(dField, vertices, T=100)
 
-W = df.EStep(fn, vertices, 0.01)
+W = df.eStep(fn, vertices, 0.01)
 r = df.calc_r(W,fn,vertices)
 WSnake = df.calc_WSnake(W)
 #print(W.shape)

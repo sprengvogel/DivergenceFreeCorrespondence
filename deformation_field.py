@@ -5,16 +5,16 @@ from math import ceil
 from tqdm import tqdm
 
 k=1000
+HUBER_RADIUS=1
 
 class DField:
-    def __init__(self, cs, js, X):
+    def __init__(self, cs, js):
         self.cs = cs
         self.js = js
-        self.X = X
 
-def B_phi(x, j):
+"""def B_phi(x, j):
     assert(x.shape[1] == j.shape[0])
-    return 0.5 * np.prod(np.sin(np.pi*x*j[na,:]), axis=1)
+    return 0.5 * np.prod(np.sin(np.pi*x*j[na,:]), axis=1)"""
 
 def dB_phi_dxk(x,j,k):
     assert(x.shape[1] == 3 and j.shape[0] == 3 and (0<=k<3))
@@ -22,11 +22,51 @@ def dB_phi_dxk(x,j,k):
     m = (k+2)%3
     return 0.5**3 * np.pi*j[k] * np.cos(np.pi*x[:,k]*j[k]) *  np.sin(np.pi*x[:,l]*j[l]) * np.sin(np.pi*x[:,m]*j[m])
 
+"""
 def B_v(x,j):
     v1 = np.stack([ np.zeros(x.shape[0]), dB_phi_dxk(x,j,2),    -dB_phi_dxk(x,j,1)],    axis=-1)
     v2 = np.stack([-dB_phi_dxk(x,j,2),    np.zeros(x.shape[0]),  dB_phi_dxk(x,j,0)],    axis=-1)
     v3 = np.stack([ dB_phi_dxk(x,j,1),   -dB_phi_dxk(x,j,0),     np.zeros(x.shape[0])], axis=-1)
-    return np.stack([v1,v2,v3], axis=-1)
+    return np.stack([v1,v2,v3], axis=-1)"""
+
+def B_v(x,k,js):
+    j = js[k//3]
+    if k%3 == 0:
+        return np.stack([ np.zeros(x.shape[0]), dB_phi_dxk(x,j,2),    -dB_phi_dxk(x,j,1)],    axis=-1)
+    elif k%3 == 1:
+        return np.stack([-dB_phi_dxk(x,j,2),    np.zeros(x.shape[0]),  dB_phi_dxk(x,j,0)],    axis=-1)
+    else:
+        return np.stack([ dB_phi_dxk(x,j,1),   -dB_phi_dxk(x,j,0),     np.zeros(x.shape[0])], axis=-1)
+
+def Dxvk(x,k,js):
+    j = js[k//3]
+    Dxvk = np.zeros((3,3))
+    if k%3 == 0:
+        Dxvk[1,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[1,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[1,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+
+        Dxvk[2,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[2,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[2,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])        
+    elif k%3 == 1:
+        Dxvk[0,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+
+        Dxvk[2,0] = -j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[2,1] = j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[2,2] = j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+    else:
+        Dxvk[0,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+
+        Dxvk[1,0] = j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[1,1] = -j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[1,2] = -j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+    Dxvk = 0.125*np.pi*np.pi*Dxvk
+    return Dxvk
 
 def sortFunc(x):
     return x[0]*x[0]+x[1]*x[1]+x[2]*x[2]
@@ -45,26 +85,22 @@ def getDeformationField(coefficients, js, x):
     Constructs a deformation field by adding the basis vectors weighted by the coefficients
     """
     sum=np.zeros(x.shape)
-    for i in range(0, len(coefficients)-2, 3):
-        bv = B_v(x, js[i//3])
-        sum += coefficients[i]*bv[:,:,0]
-        sum += coefficients[i+1]*bv[:,:,1]
-        sum += coefficients[i+2]*bv[:,:,2]
-    bv = B_v(x, js[(len(coefficients)-1)//3])
-    if len(coefficients) % 3 == 1 or len(coefficients) % 3 == 2:
-        sum += coefficients[len(coefficients)-2]*bv[:,:,0]
-    if len(coefficients) % 3 == 2:
-        sum += coefficients[len(coefficients)-1]*bv[:,:,1]
+    for k in range(len(coefficients)):
+        bv = B_v(x, k, js)
+        sum += coefficients[k]*bv
     return sum
 
-def rungeKutta(dField, T=100):
-    xn = dField.X
+def rungeKutta(dField, vertices, T=100):
+    xn = vertices
     h = 1/T
     for t in range(1,T+1):
         xn = xn + h*getDeformationField(dField.cs, dField.js, xn+(h/2)*getDeformationField(dField.cs, dField.js, xn))
     return xn
 
-def EStep(fn, ym, sigmasquare):
+"""
+One Expectation Step iteration
+"""
+def eStep(fn, ym, sigmasquare):
     ds = calc_ds(fn, ym)
     numerator = np.exp(-1/(2*sigmasquare)*ds**2)
     denominator = (2*np.pi*sigmasquare)**1.5 + np.sum([np.exp(-1/(2*sigmasquare)*np.square(dn)) for dn in ds], axis=0)
@@ -81,10 +117,52 @@ def calc_ds(fn, ym):
     return ds
 
 """
+One Maximization Step iteration
+"""
+def mStep(dField, xn, ym, W, sigmasquare):
+    W = applyHuberLoss(W, xn, ym)
+    fn, Dafn = calc_PartialDerivatives(dField, xn)
+    J = np.reshape(Dafn, (xn.shape[0]*3, len(dField.cs)))
+    r = calc_r(W, fn, ym)
+    WSnake = calc_WSnake(W)
+    LInv = calc_LInv(dField.js)
+    dField.cs = dField.cs - np.linalg.inv(np.transpose(J)*WSnake*J+sigmasquare*LInv)*(np.transpose(J)*r-sigmasquare*LInv*dField.cs)
+    return dField
+
+"""
+Recursion to calculate f_n and D_a f_n
+"""
+def calc_PartialDerivatives(dField, vertices, T=100):
+    xn = vertices
+    #Daxn is (N,3,K) where K is number of coefficients
+    Daxn = np.zeros((xn.shape[0],3,len(dField.cs)))
+    h = 1/T
+    for t in range(1,T+1):
+        Daxn = daxn_step(Daxn, xn, dField, h)
+        xn = xn + h*getDeformationField(dField.cs, dField.js, xn+(h/2)*getDeformationField(dField.cs, dField.js, xn))
+    return xn, Daxn
+
+"""
+One step of the iteration to calculate D_a x_{n+1}
+"""
+def daxn_step(Daxn, xn, dField, h):
+    max_k = len(dField.cs)
+    term3 = 0
+    term4 = 0
+    outer_sum = 0
+    for k in range(max_k):
+        term1 = Daxn(xn+(h/2)*getDeformationField(dField.cs, dField.js, xn), k, dField.js)
+        term2 = 0
+        outer_sum += term1*(term2+term3)*dField.cs[k]
+
+    Daxn = Daxn + h*outer_sum + h*term4
+    return Daxn
+
+"""
 Calculates diagonal matrix of eigenvalues L
 """
-def calc_L(js):
-    L = np.diag(np.power((np.pi**2)*np.sum(np.square(js),1),-3/2))
+def calc_LInv(js):
+    L = np.diag(1/np.power((np.pi**2)*np.sum(np.square(js),1),-3/2))
     assert L.shape == (js.shape[0], js.shape[0])
     return L
     
@@ -110,6 +188,13 @@ def calc_WSnake(W):
     assert WSnake.shape == (3*W.shape[0],3*W.shape[0])
     return WSnake
 
+def applyHuberLoss(W, fn, ym):
+    for n in range(len(fn)):
+        for m in range(len(ym)):
+            if np.linalg.norm(fn[n]-ym[m]) > HUBER_RADIUS:
+                W[n,m] *= HUBER_RADIUS/np.linalg.norm(fn[n]-ym[m])
+    return W
+
 if __name__ == "__main__":
 
     """n=10
@@ -130,7 +215,7 @@ if __name__ == "__main__":
     x,y = np.meshgrid(np.linspace(0,1,n),np.linspace(0,1,n))
     X = np.stack([x,y,0.5*np.ones(x.shape)],axis=-1).reshape(n*n, 3)
     print(X.shape)
-    cs = np.array([0,0,1])
+    cs = np.ones(100)
     f = getDeformationField(cs, js, X)
     u = f[:,0].reshape((n,n))
     v = f[:,1].reshape((n,n))
