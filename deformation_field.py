@@ -40,31 +40,31 @@ def B_v(x,k,js):
 
 def Dxvk(x,k,js):
     j = js[k//3]
-    Dxvk = np.zeros((3,3))
+    Dxvk = np.zeros((x.shape[0],3,3))
     if k%3 == 0:
-        Dxvk[1,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[1,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[1,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
 
-        Dxvk[2,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[2,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[2,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])        
+        Dxvk[:,2,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])        
     elif k%3 == 1:
-        Dxvk[0,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
 
-        Dxvk[2,0] = -j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[2,1] = j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[2,2] = j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,0] = -j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,1] = j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,2] = j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
     else:
-        Dxvk[0,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
 
-        Dxvk[1,0] = j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[1,1] = -j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[1,2] = -j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,0] = j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,1] = -j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,2] = -j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
     Dxvk = 0.125*np.pi*np.pi*Dxvk
     return Dxvk
 
@@ -126,7 +126,7 @@ def mStep(dField, xn, ym, W, sigmasquare):
     r = calc_r(W, fn, ym)
     WSnake = calc_WSnake(W)
     LInv = calc_LInv(dField.js)
-    dField.cs = dField.cs - np.linalg.inv(np.transpose(J)*WSnake*J+sigmasquare*LInv)*(np.transpose(J)*r-sigmasquare*LInv*dField.cs)
+    dField.cs = dField.cs - np.linalg.inv(np.transpose(J)@WSnake@J+sigmasquare*LInv)*(np.transpose(J)@r-sigmasquare*LInv*dField.cs)
     return dField
 
 """
@@ -147,13 +147,19 @@ One step of the iteration to calculate D_a x_{n+1}
 """
 def daxn_step(Daxn, xn, dField, h):
     max_k = len(dField.cs)
-    term3 = 0
-    term4 = 0
+    term2_sum = np.zeros((xn.shape[0],3,3))
+    term3 = np.zeros((xn.shape[0],3,max_k))
+    term4 = np.zeros((xn.shape[0],3,max_k))
+    for k in range(max_k):
+        term2_sum += Dxvk(xn,k,dField.js)*dField.cs[k]
+        term3[:,:,k] = B_v(xn, k, js)
+        term4[:,:,k] = B_v(xn+(h/2)*getDeformationField(dField.cs, dField.js, xn), k, js)
+    term2 = (np.identity(3)+(h/2)*term2_sum)@Daxn
+    
     outer_sum = 0
     for k in range(max_k):
-        term1 = Daxn(xn+(h/2)*getDeformationField(dField.cs, dField.js, xn), k, dField.js)
-        term2 = 0
-        outer_sum += term1*(term2+term3)*dField.cs[k]
+        term1 = Dxvk(xn+(h/2)*getDeformationField(dField.cs, dField.js, xn), k, dField.js)
+        outer_sum += term1@(term2+term3)*dField.cs[k]
 
     Daxn = Daxn + h*outer_sum + h*term4
     return Daxn
