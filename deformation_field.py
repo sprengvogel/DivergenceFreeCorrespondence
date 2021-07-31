@@ -4,8 +4,8 @@ import itertools
 from math import ceil
 from tqdm import tqdm
 
-k=1000
-HUBER_RADIUS=1
+HUBER_RADIUS = 1
+SIGMA_SQUARE = 0.01
 
 class DField:
     def __init__(self, cs, js):
@@ -78,8 +78,6 @@ def generateJs(k_max=1000):
     js = js[:j_len]
     return np.array(js)
 
-js=generateJs(k)
-
 def getDeformationField(coefficients, js, x):
     """
     Constructs a deformation field by adding the basis vectors weighted by the coefficients
@@ -100,10 +98,10 @@ def rungeKutta(dField, vertices, T=100):
 """
 One Expectation Step iteration
 """
-def eStep(fn, ym, sigmasquare):
+def eStep(fn, ym):
     ds = calc_ds(fn, ym)
-    numerator = np.exp(-1/(2*sigmasquare)*ds**2)
-    denominator = (2*np.pi*sigmasquare)**1.5 + np.sum([np.exp(-1/(2*sigmasquare)*np.square(dn)) for dn in ds], axis=0)
+    numerator = np.exp(-1/(2*SIGMA_SQUARE)*ds**2)
+    denominator = (2*np.pi*SIGMA_SQUARE)**1.5 + np.sum([np.exp(-1/(2*SIGMA_SQUARE)*np.square(dn)) for dn in ds], axis=0)
     #Numerator is (n,m), denominator  (m,) and gets broadcasted to (n,m) in product
     res = numerator/denominator
     assert res.shape == (fn.shape[0],ym.shape[0])
@@ -119,14 +117,14 @@ def calc_ds(fn, ym):
 """
 One Maximization Step iteration
 """
-def mStep(dField, xn, ym, W, sigmasquare):
+def mStep(dField, xn, ym, W):
     W = applyHuberLoss(W, xn, ym)
     fn, Dafn = calc_PartialDerivatives(dField, xn)
     J = np.reshape(Dafn, (xn.shape[0]*3, len(dField.cs)))
     r = calc_r(W, fn, ym)
     WSnake = calc_WSnake(W)
-    LInv = calc_LInv(dField.js)
-    dField.cs = dField.cs - np.linalg.inv(np.transpose(J)@WSnake@J+sigmasquare*LInv)*(np.transpose(J)@r-sigmasquare*LInv*dField.cs)
+    LInv = calc_LInv(dField)
+    dField.cs = dField.cs - np.linalg.inv(np.transpose(J)@WSnake@J+SIGMA_SQUARE*LInv)@(np.transpose(J)@r-SIGMA_SQUARE*(LInv@dField.cs))
     return dField
 
 """
@@ -146,19 +144,20 @@ def calc_PartialDerivatives(dField, vertices, T=100):
 One step of the iteration to calculate D_a x_{n+1}
 """
 def daxn_step(Daxn, xn, dField, h):
+    dFieldResult = xn+(h/2)*getDeformationField(dField.cs, dField.js, xn)
     max_k = len(dField.cs)
     term2_sum = np.zeros((xn.shape[0],3,3))
     term3 = np.zeros((xn.shape[0],3,max_k))
     term4 = np.zeros((xn.shape[0],3,max_k))
     for k in range(max_k):
         term2_sum += Dxvk(xn,k,dField.js)*dField.cs[k]
-        term3[:,:,k] = B_v(xn, k, js)
-        term4[:,:,k] = B_v(xn+(h/2)*getDeformationField(dField.cs, dField.js, xn), k, js)
+        term3[:,:,k] = B_v(xn, k, dField.js)
+        term4[:,:,k] = B_v(dFieldResult, k, dField.js)
     term2 = (np.identity(3)+(h/2)*term2_sum)@Daxn
     
     outer_sum = 0
     for k in range(max_k):
-        term1 = Dxvk(xn+(h/2)*getDeformationField(dField.cs, dField.js, xn), k, dField.js)
+        term1 = Dxvk(dFieldResult, k, dField.js)
         outer_sum += term1@(term2+term3)*dField.cs[k]
 
     Daxn = Daxn + h*outer_sum + h*term4
@@ -167,9 +166,12 @@ def daxn_step(Daxn, xn, dField, h):
 """
 Calculates diagonal matrix of eigenvalues L
 """
-def calc_LInv(js):
-    L = np.diag(1/np.power((np.pi**2)*np.sum(np.square(js),1),-3/2))
-    assert L.shape == (js.shape[0], js.shape[0])
+def calc_LInv(dField):
+    L = np.zeros((dField.cs.shape[0],dField.cs.shape[0]))
+    for k in range(len(dField.cs)):
+        j = dField.js[k]
+        L[k,k] = 1/np.power((np.pi**2)*np.sum(np.square(j)),-3/2)
+    assert L.shape == (dField.cs.shape[0], dField.cs.shape[0])
     return L
     
 """
@@ -216,6 +218,7 @@ if __name__ == "__main__":
     ax = fig.add_subplot(projection='3d')
     plt.quiver(x,y,z,u,v,w,length=0.01,normalize=False)
     plt.show() """
+    js=generateJs()
 
     n=25
     x,y = np.meshgrid(np.linspace(0,1,n),np.linspace(0,1,n))
