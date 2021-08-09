@@ -4,7 +4,7 @@ import itertools
 from math import ceil
 from tqdm import tqdm
 
-HUBER_RADIUS = 1
+HUBER_RADIUS = 0.01
 SIGMA_SQUARE = 0.01
 
 class DField:
@@ -42,29 +42,29 @@ def Dxvk(x,k,js):
     j = js[k//3]
     Dxvk = np.zeros((x.shape[0],3,3))
     if k%3 == 0:
-        Dxvk[:,1,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[:,1,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[:,1,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,0] = j[0]*j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,1] = j[1]*j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,2] = -j[2]*j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
 
-        Dxvk[:,2,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,2,1] = j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,2,2] = -j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])        
+        Dxvk[:,2,0] = -j[0]*j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,1] = j[1]*j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,2] = -j[2]*j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])        
     elif k%3 == 1:
-        Dxvk[:,0,0] = -j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[:,0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
-        Dxvk[:,0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,0] = -j[0]*j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,1] = -j[1]*j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,2] = j[2]*j[2]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
 
-        Dxvk[:,2,0] = -j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,2,1] = j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,2,2] = j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,0] = -j[0]*j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,1] = j[1]*j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,2,2] = j[2]*j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
     else:
-        Dxvk[:,0,0] = j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,0,1] = -j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,0,2] = j[2]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,0] = j[0]*j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,1] = -j[1]*j[1]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,0,2] = j[2]*j[1]*np.sin(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
 
-        Dxvk[:,1,0] = j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,1,1] = -j[1]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
-        Dxvk[:,1,2] = -j[2]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,0] = j[0]*j[0]*np.sin(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,1] = -j[1]*j[0]*np.cos(x[:,0]*np.pi*j[0])*np.cos(x[:,1]*np.pi*j[1])*np.sin(x[:,2]*np.pi*j[2])
+        Dxvk[:,1,2] = -j[2]*j[0]*np.cos(x[:,0]*np.pi*j[0])*np.sin(x[:,1]*np.pi*j[1])*np.cos(x[:,2]*np.pi*j[2])
     Dxvk = 0.125*np.pi*np.pi*Dxvk
     return Dxvk
 
@@ -101,36 +101,42 @@ One Expectation Step iteration
 def eStep(fn, ym):
     ds = calc_ds(fn, ym)
     numerator = np.exp(-1/(2*SIGMA_SQUARE)*ds**2)
-    denominator = (2*np.pi*SIGMA_SQUARE)**1.5 + np.sum([np.exp(-1/(2*SIGMA_SQUARE)*np.square(dn)) for dn in ds], axis=0)
+    denominator_sum = np.sum([np.exp(-1/(2*SIGMA_SQUARE)*np.square(dn)) for dn in ds], axis=0)
+    denominator = (2*np.pi*SIGMA_SQUARE)**1.5 + denominator_sum
     #Numerator is (n,m), denominator  (m,) and gets broadcasted to (n,m) in product
-    res = numerator/denominator
-    assert res.shape == (fn.shape[0],ym.shape[0])
-    return res
+    W = numerator/denominator
+    #res_last_row = np.ones(ym.shape[0])/(np.ones(ym.shape[0])+1/(((2*np.pi*SIGMA_SQUARE)**1.5)*denominator_sum))
+    #res = np.vstack((res,res_last_row))
+    W = applyHuberLoss(W, fn, ym, ds)
+    assert W.shape == (fn.shape[0],ym.shape[0])
+    return W
 
 def calc_ds(fn, ym):
-    ds = np.zeros((fn.shape[0],ym.shape[0]))
-    for i in range(fn.shape[0]):
-        ds[i,:] = np.linalg.norm(ym-fn[i], axis=1)
-    assert ds.shape == (fn.shape[0],ym.shape[0])
-    return ds
+    return np.linalg.norm(fn[:,None,:]-ym[None,:,:], axis=2)
 
 """
 One Maximization Step iteration
 """
 def mStep(dField, xn, ym, W):
-    W = applyHuberLoss(W, xn, ym)
     fn, Dafn = calc_PartialDerivatives(dField, xn)
-    J = np.reshape(Dafn, (xn.shape[0]*3, len(dField.cs)))
+    J = np.reshape(Dafn, (xn.shape[0]*3, len(dField.cs))) #POTENTIAL ERROR
     r = calc_r(W, fn, ym)
     WSnake = calc_WSnake(W)
     LInv = calc_LInv(dField)
-    dField.cs = dField.cs - np.linalg.inv(np.transpose(J)@WSnake@J+SIGMA_SQUARE*LInv)@(np.transpose(J)@r-SIGMA_SQUARE*(LInv@dField.cs))
-    return dField
+    dField.cs = dField.cs - np.linalg.inv(J.T@WSnake@J+SIGMA_SQUARE*LInv)@(J.T@r-SIGMA_SQUARE*(LInv@dField.cs))
+    energy = calc_energy(dField.cs, LInv, W, fn, ym)
+    print(energy)
+    return dField,fn
+
+def calc_energy(a,LInv,W,fn,ym):
+    ds = np.linalg.norm(fn[:,None,:]-ym[None,:,:], axis=2)
+    #return 0.5*np.transpose(a)@LInv@a + np.sum(W*ds)
+    return 0.5*SIGMA_SQUARE*np.transpose(a)@LInv@a
 
 """
 Recursion to calculate f_n and D_a f_n
 """
-def calc_PartialDerivatives(dField, vertices, T=100):
+def calc_PartialDerivatives(dField, vertices, T=20):
     xn = vertices
     #Daxn is (N,3,K) where K is number of coefficients
     Daxn = np.zeros((xn.shape[0],3,len(dField.cs)))
@@ -181,7 +187,7 @@ def calc_r(W,fn,ym):
     n = fn.shape[0]
     r = np.zeros((3*n,))
     for i in range(n):
-        r[3*i:3*i+3] = np.sum((W[i]*(fn[i]-ym).T),axis=1)
+        r[3*i:3*i+3] = np.sum((W[i]*(fn[i]-ym).T),axis=1) #POTENTIAL ERROR
     assert r.shape == (3*n,)
     return r
 
@@ -189,18 +195,13 @@ def calc_r(W,fn,ym):
 Calculates WSnake, diagonal matrix of column sums
 """
 def calc_WSnake(W):
-    sums = np.zeros(3*W.shape[1])
-    for i in range(W.shape[1]):
-        sums[3*i:3*i+3] = np.sum(W[i]) 
-    WSnake = np.diag(sums)
+    WSnake = np.diag(np.repeat(np.sum(W, axis=1), 3))
     assert WSnake.shape == (3*W.shape[0],3*W.shape[0])
     return WSnake
 
-def applyHuberLoss(W, fn, ym):
-    for n in range(len(fn)):
-        for m in range(len(ym)):
-            if np.linalg.norm(fn[n]-ym[m]) > HUBER_RADIUS:
-                W[n,m] *= HUBER_RADIUS/np.linalg.norm(fn[n]-ym[m])
+def applyHuberLoss(W, fn, ym, ds):
+    huber_flags = ds > HUBER_RADIUS
+    W[huber_flags] *= HUBER_RADIUS / ds[huber_flags]
     return W
 
 if __name__ == "__main__":
