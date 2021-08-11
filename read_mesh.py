@@ -90,7 +90,7 @@ js = df.generateJs(1000)
 cs = np.zeros(10)
 dField = df.DField(cs,js)
 fn = xn
-for i in range(1000):
+for i in range(100):
 	#W = df.eStep(fn, ym)
 	W = np.identity(28)
 	#dField.cs = dField.cs - 0.2
@@ -104,9 +104,26 @@ print(dField.cs)
 #print(W.shape)
 #plt.matshow(W, cmap=plt.cm.Blues)
 #plt.show()
-xn = load_points_and_mesh("tosca/cat1.vert", 300)
-fn = df.rungeKutta(dField, xn)
-ax = plt.axes(projection='3d')
+
+start = load_points_and_mesh("tosca/cat1.vert", 300)
+fig = plt.figure()
+ax = fig.add_subplot(1,2,1,projection='3d')
+ax.autoscale(False)
+ax.set_xlim(0.,1.)
+ax.set_ylim(0.,1.)
+ax.set_zlim(0.,1.)
+ax.scatter3D(*zip(*start))
+
+end = load_points_and_mesh("tosca/cat4.vert", 300)
+ax = fig.add_subplot(1,3,2,projection='3d')
+ax.autoscale(False)
+ax.set_xlim(0.,1.)
+ax.set_ylim(0.,1.)
+ax.set_zlim(0.,1.)
+ax.scatter3D(*zip(*end))
+
+fn = df.rungeKutta(dField, start)
+ax = fig.add_subplot(1,3,3,projection='3d')
 ax.autoscale(False)
 ax.set_xlim(0.2,0.8)
 ax.set_ylim(0.2,0.8)
