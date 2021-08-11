@@ -21,6 +21,15 @@ def load_points_and_mesh(model_file, num_points):
 	x = scale_numpy_array(x, 0, 1)
 	return x
 
+def load_mesh(model_file, n):
+	pts = []
+	with open(model_file, 'r') as file_vert:
+		for row in file_vert:
+			pts.append([float(r) for r in row.split()])
+	pts = np.array(pts[0::n])
+	pts = scale_numpy_array(pts, 0, 1)
+	return pts
+
 """mesh = trimesh.load("data/topkids/kid01.off").process(validate=True)
 mesh.apply_scale(0.004)
 mesh.rezero()
@@ -53,34 +62,40 @@ volume_x = cloud_x.delaunay_3d(alpha=0.033)
 shell_x = volume_x.extract_geometry()
 shell_x.plot()"""
 
-xn = load_points_and_mesh("tosca/cat1.vert", 30)
-ym = load_points_and_mesh("tosca/cat4.vert", 30)
-print(xn)
-print(ym)
+#xn = load_points_and_mesh("tosca/cat1.vert", 30)
+#ym = load_points_and_mesh("tosca/cat4.vert", 30)
+xn = load_mesh("tosca/cat1.vert", 1000)
+ym = load_mesh("tosca/cat4.vert", 1000)
+#ym += 0.01
+print(xn.shape)
+print(ym.shape)
 
-ax = plt.axes(projection='3d')
+fig = plt.figure()
+ax = fig.add_subplot(1,2,1,projection='3d')
 ax.autoscale(False)
 ax.set_xlim(0.,1.)
 ax.set_ylim(0.,1.)
 ax.set_zlim(0.,1.)
-ax.scatter3D(*zip(*xn))
-plt.show()
+ax.scatter3D(*zip(*xn),c=np.arange(xn.shape[0]))
 
-ax = plt.axes(projection='3d')
+ax = fig.add_subplot(1,2,2,projection='3d')
 ax.autoscale(False)
 ax.set_xlim(0.,1.)
 ax.set_ylim(0.,1.)
 ax.set_zlim(0.,1.)
-ax.scatter3D(*zip(*ym))
+ax.scatter3D(*zip(*ym),c=np.arange(xn.shape[0]))
 plt.show()
 
-js = df.generateJs()
+js = df.generateJs(1000)
 cs = np.zeros(10)
 dField = df.DField(cs,js)
 fn = xn
 for i in range(1000):
-	W = df.eStep(fn, ym)
-	dField, fn = df.mStep(dField, xn, ym, W)
+	#W = df.eStep(fn, ym)
+	W = np.identity(28)
+	#dField.cs = dField.cs - 0.2
+	dField, _ = df.mStep(dField, xn, ym, W, False)
+	fn = df.rungeKutta(dField, xn)
 print(dField.cs)
 
 #W = df.eStep(fn, vertices, 0.01)
@@ -89,6 +104,8 @@ print(dField.cs)
 #print(W.shape)
 #plt.matshow(W, cmap=plt.cm.Blues)
 #plt.show()
+xn = load_points_and_mesh("tosca/cat1.vert", 300)
+fn = df.rungeKutta(dField, xn)
 ax = plt.axes(projection='3d')
 ax.autoscale(False)
 ax.set_xlim(0.2,0.8)

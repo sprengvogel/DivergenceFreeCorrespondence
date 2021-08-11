@@ -88,7 +88,7 @@ def getDeformationField(coefficients, js, x):
         sum += coefficients[k]*bv
     return sum
 
-def rungeKutta(dField, vertices, T=100):
+def rungeKutta(dField, vertices, T=20):
     xn = vertices
     h = 1/T
     for t in range(1,T+1):
@@ -104,7 +104,7 @@ def eStep(fn, ym):
     denominator_sum = np.sum([np.exp(-1/(2*SIGMA_SQUARE)*np.square(dn)) for dn in ds], axis=0)
     denominator = (2*np.pi*SIGMA_SQUARE)**1.5 + denominator_sum
     #Numerator is (n,m), denominator  (m,) and gets broadcasted to (n,m) in product
-    W = numerator/denominator
+    W = numerator/denominator_sum
     #res_last_row = np.ones(ym.shape[0])/(np.ones(ym.shape[0])+1/(((2*np.pi*SIGMA_SQUARE)**1.5)*denominator_sum))
     #res = np.vstack((res,res_last_row))
     W = applyHuberLoss(W, fn, ym, ds)
@@ -117,21 +117,33 @@ def calc_ds(fn, ym):
 """
 One Maximization Step iteration
 """
-def mStep(dField, xn, ym, W):
+def mStep(dField, xn, ym, W, gaussnewton=True):
     fn, Dafn = calc_PartialDerivatives(dField, xn)
     J = np.reshape(Dafn, (xn.shape[0]*3, len(dField.cs))) #POTENTIAL ERROR
-    r = calc_r(W, fn, ym)
-    WSnake = calc_WSnake(W)
-    LInv = calc_LInv(dField)
-    dField.cs = dField.cs - np.linalg.inv(J.T@WSnake@J+SIGMA_SQUARE*LInv)@(J.T@r-SIGMA_SQUARE*(LInv@dField.cs))
+
+    if gaussnewton:
+        r = calc_r(W, fn, ym)
+        WSnake = calc_WSnake(W)
+        LInv = calc_LInv(dField)
+        dField.cs = dField.cs - np.linalg.inv(J.T@WSnake@J+SIGMA_SQUARE*LInv)@(J.T@r-SIGMA_SQUARE*(LInv@dField.cs))
+    else:
+        LInv = calc_LInv(dField)
+        # shape (n,3)
+        dEdf = np.sum((fn[:,None,:] - ym[None,:,:]) * W[:,:,None], 1)
+        # J: (n*3,k)
+        grad = LInv.dot(dField.cs) + 1 / SIGMA_SQUARE * (dEdf.flatten().dot(J))
+        lr = 1*1e-4
+        dField.cs = dField.cs - lr * grad
+
     energy = calc_energy(dField.cs, LInv, W, fn, ym)
-    print(energy)
+    #print(energy)
     return dField,fn
 
 def calc_energy(a,LInv,W,fn,ym):
     ds = np.linalg.norm(fn[:,None,:]-ym[None,:,:], axis=2)
     #return 0.5*np.transpose(a)@LInv@a + np.sum(W*ds)
-    return 0.5*SIGMA_SQUARE*np.transpose(a)@LInv@a
+    print(np.sum(W*ds))
+    return 0.5*SIGMA_SQUARE*np.transpose(a)@LInv@a + np.sum(W*ds)
 
 """
 Recursion to calculate f_n and D_a f_n
