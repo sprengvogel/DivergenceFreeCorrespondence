@@ -1,5 +1,5 @@
-import farthest_point as fp
-import trimesh
+#import farthest_point as fp
+#import trimesh
 import numpy as np
 import matplotlib.pyplot as plt
 import deformation_field as df
@@ -21,14 +21,41 @@ def load_points_and_mesh(model_file, num_points):
 	x = scale_numpy_array(x, 0, 1)
 	return x
 
-def load_mesh(model_file, n):
+def load_mesh(model_file):
 	pts = []
 	with open(model_file, 'r') as file_vert:
 		for row in file_vert:
 			pts.append([float(r) for r in row.split()])
-	pts = np.array(pts[0::n])
+	pts = np.array(pts)
 	pts = scale_numpy_array(pts, 0, 1)
 	return pts
+
+def load_faces(model_file):
+	faces = []
+	with open(model_file, 'r') as file_tri:
+		for row in file_tri:
+			faces.append([int(r)-1 for r in row.split()])
+	faces = np.array(faces)
+	return faces
+
+def load_mesh_with_shot(vert_file, tri_file, n):
+	pts = load_mesh(vert_file)
+	faces = load_faces(tri_file)
+	shot_descriptors = pyshot.get_descriptors(
+	pts,
+	faces,
+	radius=0.1,
+	local_rf_radius=0.1,
+	# The following parameters are optional
+	min_neighbors=3,
+	n_bins=20,
+	double_volumes_sectors=True,
+	use_interpolation=True,
+	use_normalization=True,
+)
+	pts = pts[0::n]
+	shot_descriptors = shot_descriptors[0::n]
+	return pts, shot_descriptors
 
 """mesh = trimesh.load("data/topkids/kid01.off").process(validate=True)
 mesh.apply_scale(0.004)
@@ -64,8 +91,8 @@ shell_x.plot()"""
 
 #xn = load_points_and_mesh("tosca/cat1.vert", 30)
 #ym = load_points_and_mesh("tosca/cat4.vert", 30)
-xn = load_mesh("tosca/cat1.vert", 1000)
-ym = load_mesh("tosca/cat4.vert", 1000)
+xn, shot_x = load_mesh_with_shot("tosca/cat1.vert", "tosca/cat1.tri", 200)
+ym, shot_y = load_mesh_with_shot("tosca/cat4.vert", "tosca/cat4.tri", 200)
 #ym += 0.01
 print(xn.shape)
 print(ym.shape)
@@ -86,13 +113,18 @@ ax.set_zlim(0.,1.)
 ax.scatter3D(*zip(*ym),c=np.arange(xn.shape[0]))
 plt.show()
 
-js = df.generateJs(1000)
-cs = np.zeros(10)
+
+
+js = df.generateJs(3000)
+cs = np.zeros(100)
 dField = df.DField(cs,js)
 fn = xn
+ds_euclid = np.linalg.norm(fn[:,None,:]-ym[None,:,:], axis=2)
+ds_shot = np.linalg.norm(shot_x[:,None,:]-shot_y[None,:,:], axis=2)
+ds_shot = (np.mean(ds_euclid)/np.mean(ds_shot))*ds_shot
 for i in range(100):
-	#W = df.eStep(fn, ym)
-	W = np.identity(28)
+	W = df.eStep(fn, ym, ds_shot, True)
+	#W = np.identity(xn.shape[0])
 	#dField.cs = dField.cs - 0.2
 	dField, _ = df.mStep(dField, xn, ym, W, False)
 	fn = df.rungeKutta(dField, xn)
@@ -107,7 +139,7 @@ print(dField.cs)
 
 start = load_points_and_mesh("tosca/cat1.vert", 300)
 fig = plt.figure()
-ax = fig.add_subplot(1,2,1,projection='3d')
+ax = fig.add_subplot(1,3,1,projection='3d')
 ax.autoscale(False)
 ax.set_xlim(0.,1.)
 ax.set_ylim(0.,1.)
@@ -125,9 +157,9 @@ ax.scatter3D(*zip(*end))
 fn = df.rungeKutta(dField, start)
 ax = fig.add_subplot(1,3,3,projection='3d')
 ax.autoscale(False)
-ax.set_xlim(0.2,0.8)
-ax.set_ylim(0.2,0.8)
-ax.set_zlim(0.2,0.8)
+ax.set_xlim(0.,1.)
+ax.set_ylim(0.,1.)
+ax.set_zlim(0.,1.)
 ax.scatter3D(*zip(*fn))
 plt.show()
 """ mask = np.zeros(len(mesh.vertices), dtype=bool)

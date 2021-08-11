@@ -98,8 +98,8 @@ def rungeKutta(dField, vertices, T=20):
 """
 One Expectation Step iteration
 """
-def eStep(fn, ym):
-    ds = calc_ds(fn, ym)
+def eStep(fn, ym, ds_shot, use_shot=True):
+    ds = calc_ds(fn, ym, ds_shot, use_shot)
     numerator = np.exp(-1/(2*SIGMA_SQUARE)*ds**2)
     denominator_sum = np.sum([np.exp(-1/(2*SIGMA_SQUARE)*np.square(dn)) for dn in ds], axis=0)
     denominator = (2*np.pi*SIGMA_SQUARE)**1.5 + denominator_sum
@@ -107,12 +107,15 @@ def eStep(fn, ym):
     W = numerator/denominator_sum
     #res_last_row = np.ones(ym.shape[0])/(np.ones(ym.shape[0])+1/(((2*np.pi*SIGMA_SQUARE)**1.5)*denominator_sum))
     #res = np.vstack((res,res_last_row))
-    W = applyHuberLoss(W, fn, ym, ds)
+    #W = applyHuberLoss(W, fn, ym, ds)
     assert W.shape == (fn.shape[0],ym.shape[0])
     return W
 
-def calc_ds(fn, ym):
-    return np.linalg.norm(fn[:,None,:]-ym[None,:,:], axis=2)
+def calc_ds(fn, ym, ds_shot, use_shot):
+    ds = np.linalg.norm(fn[:,None,:]-ym[None,:,:], axis=2)
+    if use_shot:
+        ds += ds_shot
+    return ds
 
 """
 One Maximization Step iteration
@@ -132,7 +135,7 @@ def mStep(dField, xn, ym, W, gaussnewton=True):
         dEdf = np.sum((fn[:,None,:] - ym[None,:,:]) * W[:,:,None], 1)
         # J: (n*3,k)
         grad = LInv.dot(dField.cs) + 1 / SIGMA_SQUARE * (dEdf.flatten().dot(J))
-        lr = 1*1e-4
+        lr = 1e-5
         dField.cs = dField.cs - lr * grad
 
     energy = calc_energy(dField.cs, LInv, W, fn, ym)
